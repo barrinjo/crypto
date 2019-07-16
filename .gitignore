@@ -54,3 +54,4 @@ dkms.conf
 # josh garbage
 main
 test
+.vscode*
