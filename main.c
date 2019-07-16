@@ -5,7 +5,7 @@ void joshsuk(void) {
 }
 
 int main() {
-    printf("john dumb\n");
-    joshsuk();
-    return 0;
+  printf("john dumb\n");
+  joshsuk();
+  return 0;
 }
