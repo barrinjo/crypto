@@ -18,13 +18,14 @@ void encrypt(char file_name[], int private_key) {
   fclose(ifstream_ptr);
 
   FILE *ofstream_ptr;
-  ofstream_ptr = fopen("output", "wb");
+  ofstream_ptr = fopen(file_name, "wb");
   for (size_t i = 0; i < file_size; i++) {
     // modify each binary value by the private key value to "encrypt file"
     buffer[i] += private_key;
     // printf("%uc ", buffer[i]);
   }
   fwrite(buffer, sizeof(buffer), 1, ofstream_ptr);
+  fclose(ofstream_ptr);
 }
 
 int create_key() {
@@ -35,7 +36,7 @@ int create_key() {
 }
 
 int main(int argc, char *argv[]) {
-  if(argc < 2) {
+  if (argc < 2) {
     printf("no file name given.\n");
   } else {
 
