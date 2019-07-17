@@ -31,7 +31,7 @@ int main(int argc, char *argv[]) {
     printf("enter key: ");
     int input;
     scanf("%d", &input);
-    decrypt(argv[1], input % 30);
+    decrypt(argv[1], input % 256);
   }
   return 0;
 }

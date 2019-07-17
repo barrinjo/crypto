@@ -30,9 +30,9 @@ void encrypt(char file_name[], int private_key) {
 
 int create_key() {
   int input;
-  printf("enter random number set: ");
+  printf("set private key: ");
   scanf("%d", &input);
-  return input % 30;
+  return input % 256;
 }
 
 int main(int argc, char *argv[]) {
