@@ -129,7 +129,10 @@ int main (int argc, char *argv[]) {
 
     int prime1, prime2;
 
-    /* These are developement values. 
+    /* These are developement values. Make sure they are small...
+
+    TODO:
+    change data types from int to larger value to allow for larger primes 
     REPLACE BEFORE MERGE WITH MASTER */
     prime1 = 73;
     prime2 = 41;
