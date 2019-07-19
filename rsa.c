@@ -1,8 +1,9 @@
 #include <stdio.h>
+#include <ctype.h>
+#include <stdlib.h>
 #include <math.h>
-#include <string.h>
 
-#define MAX_LENGTH 256
+int EXPONENT, PRIVATE_KEY, PUBLIC_KEY;
 
 int gcd(int a, int h) {
     int temp;
@@ -16,47 +17,159 @@ int gcd(int a, int h) {
     }
 }
 
-void rsaEncrypt(char msg[], double prime_1, double prime_2, int k) {
+int inverse(int in1, int in2) {
+    int inverse;
+    int in1_temp = in1;
+    int quotient, remainder;
 
-    double n = prime_1 * prime_2;
+    int t;
 
-    double phi = (prime_1-1)*(prime_2-1);
-    int e = 2;
+    int temp1 = 0;
+    int temp2 = 1;
 
-    while (e < phi) {
-        if (gcd(e, phi) == 1)
-            break;
-        else
-            ++e;
+    while (in2 > 0) {
+        quotient = in1 / in2;
+        remainder = in1 - (quotient * in2);
+        in1 = in2;
+        in2 = remainder;
+
+        t = temp1 - (quotient * temp2);
+        temp1 = temp2;
+        temp2 = t;
     }
 
-    long long private_key = ((k * phi) + 1) / e;
-
-    printf("%lld\n", private_key);
-
-    char temp;
-    char encrypted_msg[MAX_LENGTH];
-    char decrypted_msg[MAX_LENGTH];
-
-    for (int i = 0; i < strlen(msg); ++i) {
-        temp = fmod(pow(msg[i], e), n);
-        encrypted_msg[i] = temp;
-        printf("%c\n", encrypted_msg[i]);
+    if (in1 == 1) {
+        inverse = temp1;
     }
 
-    for (int i = 0; i < strlen(msg); ++i) {
-        decrypted_msg[i] = fmod(pow(encrypted_msg[i], private_key), n);
-        printf("%c\n", decrypted_msg[i]);
+    if (inverse < 0) {
+        inverse = inverse + in1_temp;
     }
 
+    return inverse;
+}
+
+void fastExponent(int bit, int n, int* y, int* a) {
+    if (bit == 1)
+        *y = (*y * (*a)) % n;
+    
+    *a = (*a) * (*a) % n;
+}
+
+int find(int a, int m, int n) {
+    int r;
+    int y = 1;
+
+    while (m > 0) {
+        r = m % 2;
+        fastExponent(r, n, &y, &a);
+        m = m / 2;
+    }
+    return y;
+}
+
+void encrypt(int char_value, FILE* out_stream) {
+    int cipher;
+    cipher = find(char_value, EXPONENT, PUBLIC_KEY);
+    fprintf(out_stream, "%d ", cipher);
+}
+
+void decrypt(int char_value, FILE* out_stream) {
+    int decipher;
+    decipher = find(char_value, PRIVATE_KEY, PUBLIC_KEY);
+    fprintf(out_stream, "%c", decipher);
+}
+
+void keyGen(int prime1, int prime2) {
+    int phi;
+
+    PUBLIC_KEY = prime1 * prime2;
+
+    phi = (prime1 - 1) * (prime2 - 1);
+
+    EXPONENT = rand() % (phi - 2) + 2;
+
+    while (gcd(phi, EXPONENT) != 1) {
+        EXPONENT = rand() % (phi - 2) + 2;
+    }
+
+    PRIVATE_KEY = inverse(phi, EXPONENT);
 }
 
 int main (int argc, char *argv[]) {
-    char msg[] = "test";
-    double prime_1 = 13;
-    double prime_2 = 17;
-    int k = 2;
+    /* Check for input file name */
+    if (argc < 2) {
+        printf("Error: Provide file name\n");
+        exit(1);
+    }
 
-    rsaEncrypt(msg, prime_1, prime_2, k);
+    FILE *in_stream, *out_stream;
+
+    /* Destroy previous runs */
+    out_stream = fopen("encrypted.txt", "w+");
+    fclose(out_stream);
+    out_stream = fopen("decrypted.txt", "w+");
+    fclose(out_stream);
+
+    in_stream = fopen(argv[1], "r+");
+
+    /* Check for file open error */
+    if (in_stream == NULL) {
+        printf("Error: Could not open source file\n");
+        exit(1);
+    }
+
+    out_stream = fopen("encrypted.txt", "w+");
+
+    /* Check for file open error */
+    if (out_stream == NULL) {
+        printf("Error: Could not open output file\n");
+        exit(1);
+    }
+
+    int prime1, prime2;
+
+    /* These are developement values. 
+    REPLACE BEFORE MERGE WITH MASTER */
+    prime1 = 73;
+    prime2 = 41;
+
+    keyGen(prime1, prime2);
+
+    /* Encrypt */
+    while (1) {
+        char current_char = getc(in_stream);
+        if (current_char == -1)
+            break;
+        int char_value = toascii(current_char);
+        encrypt(char_value, out_stream);
+    }
+
+    fclose(in_stream);
+    fclose(out_stream);
+
+    /* Decrypt */
+    in_stream = fopen("encrypted.txt", "r+");
+    if (in_stream == NULL) {
+        printf("Error: Could not open encrypted file\n");
+        exit(1);
+    }
+
+    out_stream = fopen("decrypted.txt", "w+");
+    if (out_stream == NULL) {
+        printf("Error: Could not open decrypted file\n");
+        exit(1);
+    }
+
+    while (1) {
+        int decryption_input;
+        if (fscanf(in_stream, "%d", &decryption_input) == -1)
+            break;
+        decrypt(decryption_input, out_stream);
+    }
+
+    fclose(in_stream);
+    fclose(out_stream);
+    
     return 0;
 }
