@@ -87,10 +87,12 @@ void keyGen(int prime1, int prime2) {
 
     phi = (prime1 - 1) * (prime2 - 1);
 
-    EXPONENT = rand() % (phi - 2) + 2;
+    EXPONENT = 2;
 
-    while (gcd(phi, EXPONENT) != 1) {
-        EXPONENT = rand() % (phi - 2) + 2;
+    while ( EXPONENT < phi) {
+        if (gcd(EXPONENT, phi) == 1)
+            break;
+        ++EXPONENT;
     }
 
     PRIVATE_KEY = inverse(phi, EXPONENT);
